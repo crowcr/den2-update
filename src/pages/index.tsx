@@ -36,7 +36,9 @@ export default function Home({ data }: { data: any }) {
           {data.map((item: any) => (
             <div key={item.id}>
               <h3 className={twMerge('mb-2 text-2xl font-medium', inter.className)}>{item.name}</h3>
-              <img src={item.image_url} className='w-full mb-2' />
+              {item.image_url && (
+                <img src={item.image_url} className='w-full mb-2' />
+              )}
               <a href={item.shop_url} target='_blank' rel="noopener noreferrer" className='flex items-center'>商品販売ページ&nbsp;<FaExternalLinkAlt /></a>
               <button onClick={() => downloadFile("dotdash")} className='block w-full text-center border-2 border-white hover:text-black hover:bg-white py-4 duration-200 my-4'>
                 ダウンロード <br/>
