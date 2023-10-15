@@ -18,6 +18,7 @@ export default function Home({ data }: { data: any }) {
     window.location.reload();
   }
   async function downloadFile(name: string) {
+    //@ts-ignore
     window.open(`https://files.ja1ykl.com/game/${name}/dl?accessToken=${auth.currentUser?.accessToken}`, "_blank")
   }
   return (
@@ -61,7 +62,6 @@ export default function Home({ data }: { data: any }) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  // get json file from dl.ja1ykl.com and return it as props
   const res = await fetch("https://files.ja1ykl.com/game/info")
   const json = await res.json()
 
