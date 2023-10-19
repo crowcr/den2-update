@@ -5,10 +5,13 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { useFirebaseAuth } from "@/auth/firebase";
 import { GetServerSideProps } from "next";
 import { twMerge } from "tailwind-merge";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home({ data }: { data: any }) {
+export default function Home({ game, data }: { game: string; data: any }) {
   const { getFirebaseAuth } = useFirebaseAuth();
   const auth = getFirebaseAuth();
   async function handleLogout() {
@@ -46,48 +49,51 @@ export default function Home({ data }: { data: any }) {
           以下のリンクからゲームをダウンロードいただけます。
         </p>
         <div className="flex flex-col mt-4">
-          {data.map((item: any) => (
-            <div key={item.id}>
-              <h3
-                className={twMerge(
-                  "mb-2 text-2xl font-medium",
-                  inter.className
-                )}
-              >
-                {item.name}
-              </h3>
-              {item.image_url && (
-                <img src={item.image_url} className="w-full mb-2" />
-              )}
-              <a
-                href={item.shop_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center"
-              >
-                商品販売ページ&nbsp;
-                <FaExternalLinkAlt />
-              </a>
-              <button
-                onClick={() => downloadFile("dotdash")}
-                className="block w-full text-center border-2 border-white hover:text-black hover:bg-white py-4 duration-200 my-4"
-              >
-                ダウンロード <br />
-                {item.latest} ({item.changelog[0].date})
-              </button>
-              <details>
-                <summary>更新履歴</summary>
-                {item.changelog.map((log: any) => (
-                  <dl key={log.version}>
-                    <dt className="font-bold mt-2">
-                      {log.version} ({log.date})
-                    </dt>
-                    <dd>{log.description}</dd>
-                  </dl>
-                ))}
-              </details>
-            </div>
-          ))}
+          {data.map(
+            (item: any) =>
+              item.id === game && (
+                <div key={item.id}>
+                  <h3
+                    className={twMerge(
+                      "mb-2 text-2xl font-medium",
+                      inter.className
+                    )}
+                  >
+                    {item.name}
+                  </h3>
+                  {item.image_url && (
+                    <img src={item.image_url} className="w-full mb-2" />
+                  )}
+                  <a
+                    href={item.shop_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center"
+                  >
+                    商品販売ページ&nbsp;
+                    <FaExternalLinkAlt />
+                  </a>
+                  <button
+                    onClick={() => downloadFile("dotdash")}
+                    className="block w-full text-center border-2 border-white hover:text-black hover:bg-white py-4 duration-200 my-4"
+                  >
+                    ダウンロード <br />
+                    {item.latest} ({item.changelog[0].date})
+                  </button>
+                  <details>
+                    <summary>更新履歴</summary>
+                    {item.changelog.map((log: any) => (
+                      <dl key={log.version}>
+                        <dt className="font-bold mt-2">
+                          {log.version} ({log.date})
+                        </dt>
+                        <dd>{log.description}</dd>
+                      </dl>
+                    ))}
+                  </details>
+                </div>
+              )
+          )}
         </div>
       </div>
     </Layout>
@@ -97,10 +103,25 @@ export default function Home({ data }: { data: any }) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const res = await fetch("https://files.ja1ykl.com/game/info");
   const json = await res.json();
+  const app = getApp();
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const user = auth.currentUser;
 
-  return {
-    props: {
-      data: JSON.parse(JSON.stringify(json)),
-    },
-  };
+  if (!user) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  } else {
+    const game = (await getDoc(doc(db, "serialCodes", user.uid))).data()?.game;
+    return {
+      props: {
+        game: game,
+        data: JSON.parse(JSON.stringify(json)),
+      },
+    };
+  }
 };

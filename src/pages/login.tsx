@@ -92,12 +92,12 @@ export default function Login() {
               "text-black w-full",
               errors.serialCode && "focus:ring-red-600 focus:border-red-600"
             )}
-            placeholder="XXXX-YYYY-ZZZZ"
+            placeholder="AAAA-BBBB-CCCC-DDDD"
             {...register("serialCode", {
               required: "シリアルコードを入力してください。",
               pattern: {
                 message: "シリアルコードの形式が正しくありません。",
-                value: /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/,
+                value: /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/,
               },
             })}
           />
