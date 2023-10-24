@@ -9,7 +9,7 @@ export default function Layout({ children }: any) {
     <div className="relative min-h-screen">
       <main
         className={twMerge(
-          "flex min-h-screen justify-center p-20",
+          "flex min-h-screen justify-center p-12 md:p-20",
           notojp.className
         )}
       >

@@ -5,24 +5,37 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import { useFirebaseAuth } from "@/auth/firebase";
 import { GetServerSideProps } from "next";
 import { twMerge } from "tailwind-merge";
-import { doc, getDoc, getFirestore } from "firebase/firestore";
-import { getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getTokensFromObject } from "next-firebase-auth-edge/lib/next/tokens";
+import { getDoc } from "firebase/firestore";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home({ game, data }: { game: string; data: any }) {
   const { getFirebaseAuth } = useFirebaseAuth();
   const auth = getFirebaseAuth();
+  type Game = {
+    id: string;
+    name: string;
+    image_url: string;
+    shop_url: string;
+    latest: string;
+    supported_os: string[];
+    changelog: {
+      version: string;
+      date: string;
+      description: string;
+    }[];
+  };
+  const capitalize = (s: string) => s && s[0].toUpperCase() + s.slice(1);
   async function handleLogout() {
     await fetch("/api/logout", {
       method: "GET",
     });
     window.location.reload();
   }
-  async function downloadFile(name: string) {
+  async function downloadFile(name: string, os: string) {
     window.open(
-      `https://files.ja1ykl.com/game/${name}/dl?accessToken=${
+      `https://files.ja1ykl.com/game/${name}/dl?os=${os}accessToken=${
         (auth.currentUser as any)?.accessToken
       }`,
       "_blank"
@@ -50,7 +63,7 @@ export default function Home({ game, data }: { game: string; data: any }) {
         </p>
         <div className="flex flex-col mt-4">
           {data.map(
-            (item: any) =>
+            (item: Game) =>
               item.id === game && (
                 <div key={item.id}>
                   <h3
@@ -73,13 +86,17 @@ export default function Home({ game, data }: { game: string; data: any }) {
                     商品販売ページ&nbsp;
                     <FaExternalLinkAlt />
                   </a>
-                  <button
-                    onClick={() => downloadFile("dotdash")}
-                    className="block w-full text-center border-2 border-white hover:text-black hover:bg-white py-4 duration-200 my-4"
-                  >
-                    ダウンロード <br />
-                    {item.latest} ({item.changelog[0].date})
-                  </button>
+                  {item.supported_os.map((os: string) => (
+                    <button
+                      key={os}
+                      onClick={() => downloadFile(item.id, os)}
+                      className="block w-full text-center border-2 border-white hover:text-black hover:bg-white py-4 duration-200 my-4"
+                    >
+                      {capitalize(os)}版をダウンロード <br />
+                      {item.latest} ({item.changelog[0].date})
+                    </button>
+                  ))}
+
                   <details>
                     <summary>更新履歴</summary>
                     {item.changelog.map((log: any) => (
@@ -103,11 +120,24 @@ export default function Home({ game, data }: { game: string; data: any }) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const res = await fetch("https://files.ja1ykl.com/game/info");
   const json = await res.json();
-  const app = getApp();
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const user = auth.currentUser;
-
+  const tokens = await getTokensFromObject(context.req.cookies, {
+    apiKey: process.env.FIREBASE_API_KEY || "",
+    serviceAccount: {
+      projectId: process.env.FIREBASE_PROJECT_ID || "",
+      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY || "",
+      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL || "",
+    },
+    cookieName: "AuthToken",
+    cookieSignatureKeys: ["ovo010ovo", "dotdash-DEN2"],
+  });
+  const user = tokens || null;
+  const dbUrl = `https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/serialCodes/${tokens?.decodedToken.uid}`;
+  const dbRes = await fetch(dbUrl, {
+    headers: {
+      Authorization: `Bearer ${tokens?.token}`,
+    },
+  });
+  const dbJson = await dbRes.json();
   if (!user) {
     return {
       redirect: {
@@ -116,10 +146,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } else {
-    const game = (await getDoc(doc(db, "serialCodes", user.uid))).data()?.game;
     return {
       props: {
-        game: game,
+        game: dbJson.fields.game.stringValue,
         data: JSON.parse(JSON.stringify(json)),
       },
     };
