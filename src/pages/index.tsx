@@ -35,7 +35,7 @@ export default function Home({ game, data }: { game: string; data: any }) {
   }
   async function downloadFile(name: string, os: string) {
     window.open(
-      `https://files.ja1ykl.com/game/${name}/dl?os=${os}accessToken=${
+      `https://files.ja1ykl.com/game/${name}/dl?os=${os}&accessToken=${
         (auth.currentUser as any)?.accessToken
       }`,
       "_blank"
