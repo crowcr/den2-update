@@ -75,14 +75,14 @@ export default function Login() {
         <p>
           ゲームファイルをダウンロードするためのサイトです。
           <br />
-          製品に付属しているシリアルコードを入力してください。
+          製品に付属しているプロダクトキーを入力してください。
           <br />
           <br />
-          ※もしシリアルコードが正しいのに使用できない場合は、
+          ※もしプロダクトキーが正しいのに使用できない場合は、
           <code>denntuu20xx@gmail.com</code>までお問い合わせください。
         </p>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <h2 className="text-xl font-bold my-2">シリアルコード</h2>
+          <h2 className="text-xl font-bold my-2">プロダクトキー</h2>
           {errors.serialCode && (
             <p className="text-red-500 my-2">{errors.serialCode.message}</p>
           )}
