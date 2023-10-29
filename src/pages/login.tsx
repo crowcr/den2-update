@@ -94,9 +94,9 @@ export default function Login() {
             )}
             placeholder="AAAA-BBBB-CCCC-DDDD"
             {...register("serialCode", {
-              required: "シリアルコードを入力してください。",
+              required: "プロダクトキーを入力してください。",
               pattern: {
-                message: "シリアルコードの形式が正しくありません。",
+                message: "プロダクトキーの形式が正しくありません。",
                 value: /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/,
               },
             })}
