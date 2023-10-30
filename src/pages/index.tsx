@@ -16,6 +16,7 @@ export default function Home({ game, data }: { game: string; data: any }) {
   type Game = {
     id: string;
     name: string;
+    manual_url: string;
     image_url: string;
     shop_url: string;
     latest: string;
@@ -81,11 +82,22 @@ export default function Home({ game, data }: { game: string; data: any }) {
                     href={item.shop_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center"
+                    className="flex items-center mb-2"
                   >
                     商品販売ページ&nbsp;
                     <FaExternalLinkAlt />
                   </a>
+                  {item.manual_url && (
+                  <a
+                    href={item.manual_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center"
+                  >
+                    説明書&nbsp;
+                    <FaExternalLinkAlt />
+                  </a>
+                  )}
                   {item.supported_os.map((os: string) => (
                     <button
                       key={os}
