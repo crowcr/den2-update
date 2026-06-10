@@ -16,23 +16,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect("/login");
   }
 
+  const isAdmin = !!authResult.tokens.decodedToken.admin;
+
   try {
     const res = await fetch("https://files.ja1ykl.com/game/info");
     const json = await res.json();
 
-    const dbUrl = `https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/serialCodes/${authResult.tokens.decodedToken.uid}`;
-    const dbRes = await fetch(dbUrl, {
-      headers: {
-        Authorization: `Bearer ${authResult.tokens.token}`,
-      },
-    });
+    let game = "";
+    if (isAdmin) {
+      game = "all";
+    } else {
+      const dbUrl = `https://firestore.googleapis.com/v1/projects/${process.env.FIREBASE_PROJECT_ID}/databases/(default)/documents/serialCodes/${authResult.tokens.decodedToken.uid}`;
+      const dbRes = await fetch(dbUrl, {
+        headers: {
+          Authorization: `Bearer ${authResult.tokens.token}`,
+        },
+      });
 
-    if (!dbRes.ok) {
-      console.error("Failed to fetch Firestore doc:", await dbRes.text());
-      return redirect("/login");
+      if (!dbRes.ok) {
+        console.error("Failed to fetch Firestore doc:", await dbRes.text());
+        return redirect("/login");
+      }
+
+      const dbJson = await dbRes.json();
+      game = dbJson.fields.game.stringValue;
     }
-
-    const dbJson = await dbRes.json();
 
     const headers = new Headers();
     if (authResult.commit) {
@@ -41,8 +49,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     return data(
       {
-        game: dbJson.fields.game.stringValue,
+        game,
         data: json,
+        isAdmin,
       },
       { headers }
     );
@@ -53,7 +62,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Home() {
-  const { game, data: gameData } = useLoaderData<typeof loader>();
+  const { game, data: gameData, isAdmin } = useLoaderData<typeof loader>();
   const { getFirebaseAuth } = useFirebaseAuth();
   const auth = getFirebaseAuth();
   const navigate = useNavigate();
@@ -103,6 +112,11 @@ export default function Home() {
         <h2 className="text-4xl font-semibold mb-2 font-inter">
           DEN2-Updater
         </h2>
+        {isAdmin && (
+          <div className="bg-yellow-600/20 border border-yellow-500/50 text-yellow-200 p-3 my-2 text-sm rounded">
+            管理者権限でログインしています。すべてのゲームが表示され、ダウンロード可能です。
+          </div>
+        )}
         <p>
           電気通信部制作のゲームをプレイしていただきありがとうございます。
           <br />
@@ -111,7 +125,7 @@ export default function Home() {
         <div className="flex flex-col mt-4">
           {gameData.map(
             (item: Game) =>
-              item.id === game && (
+              (isAdmin || item.id === game) && (
                 <div key={item.id}>
                   <h3 className="mb-2 text-2xl font-medium font-inter">
                     {item.name}
