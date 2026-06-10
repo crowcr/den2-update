@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from "react-router";
+import { createCookieSessionStorage, redirect } from "react-router";
 import admin from "firebase-admin";
 
 if (!admin.apps.length) {
@@ -110,4 +110,19 @@ export async function getAuthFromRequest(request: Request) {
   }
 
   return null;
+}
+
+export async function requireAdmin(request: Request) {
+  const authResult = await getAuthFromRequest(request);
+  if (!authResult) {
+    throw redirect("/den2-console/login");
+  }
+
+  const { decodedToken } = authResult.tokens;
+  if (!decodedToken.admin) {
+    console.warn(`User ${decodedToken.uid} attempted to access admin route without admin claim.`);
+    throw redirect("/den2-console/login");
+  }
+
+  return authResult;
 }
