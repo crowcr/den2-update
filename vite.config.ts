@@ -21,5 +21,8 @@ export default defineConfig(({ mode }) => {
       "process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": JSON.stringify(env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
       "process.env.NEXT_PUBLIC_EMULATOR_HOST": JSON.stringify(env.NEXT_PUBLIC_EMULATOR_HOST),
     },
+    ssr: {
+      noExternal: [/^react-icons/],
+    },
   };
 });
