@@ -22,13 +22,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const db = admin.firestore();
   try {
-    const docRef = db.collection("games").doc(gameId);
-    const doc = await docRef.get();
-    if (doc.exists) return { error: `ゲームID「${gameId}」は既に登録されています。` };
+    // 指定されたカスタムgameIdが既に「データ内」に存在するかチェック
+    const existingGames = await db.collection("games").where("id", "==", gameId).limit(1).get();
+    if (!existingGames.empty) {
+      return { error: `ゲームID「${gameId}」は既に登録されています。` };
+    }
 
     const changelog = changelogJson ? JSON.parse(changelogJson) : [];
 
+    const docRef = db.collection("games").doc();
+
     await docRef.set({
+      id: gameId,
       name,
       description: description || "",
       latest: latest || "",
@@ -95,7 +100,7 @@ export default function ConsoleGamesNew() {
 
         <div>
           <label className="block text-sm mb-1">ゲーム名</label>
-          <input type="text" name="name" required placeholder="e.g. 電通アクション" className="text-black w-full" />
+          <input type="text" name="name" required placeholder="e.g. 電通部ゲーム" className="text-black w-full" />
         </div>
 
         <div>
@@ -105,7 +110,7 @@ export default function ConsoleGamesNew() {
 
         <div>
           <label className="block text-sm mb-1">最新バージョン</label>
-          <input type="text" name="latest" placeholder="e.g. 1.0.0" className="text-black w-full font-mono" />
+          <input type="text" name="latest" placeholder="e.g. v1.0.0" className="text-black w-full font-mono" />
         </div>
 
         <div>
@@ -115,7 +120,7 @@ export default function ConsoleGamesNew() {
 
         <div>
           <label className="block text-sm mb-1">商品販売ページURL</label>
-          <input type="url" name="shop_url" placeholder="https://booth.pm/..." className="text-black w-full" />
+          <input type="url" name="shop_url" placeholder="https://ja1ykl.com/shop/..." className="text-black w-full" />
         </div>
 
         <div>
