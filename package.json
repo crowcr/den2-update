@@ -3,34 +3,38 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@types/node": "20.8.7",
-    "@types/react": "18.2.29",
-    "@types/react-dom": "18.2.14",
-    "autoprefixer": "10.4.16",
+    "@react-router/node": "7.17.0",
+    "@react-router/serve": "7.17.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
     "csstype": "^3.1.2",
     "eslint": "8.51.0",
-    "eslint-config-next": "13.5.6",
     "firebase": "^10.5.0",
     "firebase-admin": "^11.11.0",
-    "next": "13.5.6",
-    "next-firebase-auth-edge": "^0.8.8",
-    "postcss": "8.4.31",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "isbot": "5.1.42",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "react-hook-form": "^7.47.0",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^4.11.0",
-    "tailwind-merge": "^1.14.0",
-    "tailwindcss": "3.3.3",
-    "typescript": "5.2.2"
+    "react-router": "7.17.0",
+    "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.6"
+    "@react-router/dev": "7.17.0",
+    "@tailwindcss/forms": "^0.5.6",
+    "@tailwindcss/vite": "4.3.0",
+    "@types/node": "25.9.2",
+    "tailwindcss": "4.3.0",
+    "typescript": "5.7.3",
+    "vite": "8.0.16",
+    "vite-tsconfig-paths": "6.1.1"
   }
 }

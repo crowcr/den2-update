@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -24,4 +23,12 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+.font-inter {
+  font-family: "Inter", sans-serif;
+}
+
+.font-noto {
+  font-family: "Noto Sans JP", sans-serif;
 }

@@ -1,20 +1,30 @@
-import { Inter } from "next/font/google";
 import { twMerge } from "tailwind-merge";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useFirebaseAuth } from "@/auth/firebase";
+import { useFirebaseAuth } from "~/auth/firebase";
 import { signInWithCustomToken } from "firebase/auth";
-import Head from "next/head";
 import toast from "react-hot-toast";
-import { useRouter } from "next/router";
-import Layout from "@/components/Layout";
+import { useNavigate, redirect, type LoaderFunctionArgs } from "react-router";
+import Layout from "~/components/Layout";
+import { getAuthFromRequest } from "~/auth/session.server";
 
-const inter = Inter({ subsets: ["latin"] });
+export function meta() {
+  return [
+    { title: "認証 | DEN2-Updater" },
+  ];
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const authResult = await getAuthFromRequest(request);
+  if (authResult) {
+    return redirect("/");
+  }
+  return null;
+}
 
 export default function Login() {
   const {
     register,
     handleSubmit,
-    watch,
     setError,
     formState: { errors },
   } = useForm<{ serialCode: string }>();
@@ -23,7 +33,7 @@ export default function Login() {
     console.log(data);
     handleLoginWithSerialCode(data.serialCode);
   };
-  const router = useRouter();
+  const navigate = useNavigate();
   const { getFirebaseAuth } = useFirebaseAuth();
 
   async function handleLoginWithSerialCode(serialCode: string) {
@@ -48,15 +58,19 @@ export default function Login() {
     const idTokenResult = await credential.user.getIdTokenResult();
     const logres = await (
       await fetch("/api/login", {
-        method: "GET",
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${idTokenResult.token}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          idToken: idTokenResult.token,
+          refreshToken: credential.user.refreshToken,
+        }),
       })
     ).json();
     if (logres.success) {
       toast.success("認証成功", { id: loading });
-      router.push("/");
+      navigate("/");
     } else {
       toast.error("認証失敗", {
         id: loading,
@@ -65,11 +79,8 @@ export default function Login() {
   }
   return (
     <Layout>
-      <Head>
-        <title>認証 | DEN2-Updater</title>
-      </Head>
       <div className="max-w-xl w-full">
-        <h2 className={twMerge("text-4xl font-semibold mb-2", inter.className)}>
+        <h2 className="text-4xl font-semibold mb-2 font-inter">
           DEN2-Updater
         </h2>
         <p>
@@ -101,7 +112,7 @@ export default function Login() {
               },
             })}
           />
-          <button className="border-white border-2 px-4 py-1.5 my-2 duration-200 hover:bg-white hover:text-black">
+          <button className="border-white border-2 px-4 py-1.5 my-2 duration-200 hover:bg-white hover:text-black cursor-pointer">
             認証
           </button>
         </form>
